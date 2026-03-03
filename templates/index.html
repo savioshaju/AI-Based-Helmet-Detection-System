@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Helmet Detection System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#121212',
+                        card: '#1e1e1e'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-gray-900 text-gray-100 font-sans antialiased min-h-screen flex flex-col items-center">
+    <div class="container mx-auto px-4 py-12 max-w-5xl">
+
+        <header class="text-center mb-12">
+            <h1
+                class="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-teal-400 mb-4 tracking-tight">
+                Helmet Detection System
+            </h1>
+            <p class="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto">
+                Real-time object detection powered by YOLOv8. Upload media or stream live from your camera.
+            </p>
+        </header>
+
+        <div class="space-y-12">
+
+            <section
+                class="bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-8 flex flex-col items-center w-full shadow-black/50">
+                <header class="w-full mb-6">
+                    <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+                        <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                            </path>
+                        </svg>
+                        Image Detection
+                    </h2>
+                    <p class="text-gray-400 mt-2">Upload a high-resolution image (.jpg, .png) for static bounding box
+                        detection.</p>
+                </header>
+
+                <div class="w-full flex flex-col sm:flex-row gap-4 mb-6">
+                    <input type="file" id="imageInput" accept=".jpg,.jpeg,.png"
+                        class="block w-full text-sm text-gray-400 file:mr-4 file:py-3 file:px-6 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-gray-700 file:text-white hover:file:bg-gray-600 transition cursor-pointer bg-gray-900 rounded-xl border border-gray-700 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button id="processImageBtn"
+                        class="w-full sm:w-auto px-10 py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold text-lg rounded-xl transition-colors shadow-lg shadow-blue-500/30 whitespace-nowrap active:scale-95">
+                        Process Image
+                    </button>
+                </div>
+
+                <div id="imageOutputContainer"
+                    class="w-full min-h-[500px] h-auto bg-gray-900 rounded-xl border border-gray-700 flex items-center justify-center overflow-hidden relative shadow-inner p-2">
+                    <span id="imagePlaceholder" class="text-gray-500 font-medium text-lg">Image output will appear
+                        here</span>
+                    <img id="imageResult" class="hidden max-h-[700px] object-contain w-full h-full rounded-lg"
+                        alt="Processed Image" />
+
+                    <!-- Loading State -->
+                    <div id="imageLoading"
+                        class="hidden absolute inset-0 bg-gray-900/80 flex-col items-center justify-center backdrop-blur-sm z-10">
+                        <svg class="animate-spin h-12 w-12 text-blue-500 mb-4" xmlns="http://www.w3.org/2000/svg"
+                            fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                        <span class="text-blue-400 font-semibold animate-pulse text-lg">Running YOLOv8
+                            inference...</span>
+                    </div>
+                </div>
+            </section>
+
+        
+            <section
+                class="bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-8 flex flex-col items-center w-full shadow-black/50">
+                <header class="w-full mb-6">
+                    <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+                        <svg class="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z">
+                            </path>
+                        </svg>
+                        Video Detection
+                    </h2>
+                    <p class="text-gray-400 mt-2">Upload a video file (.mp4) for frame-by-frame analysis.</p>
+                </header>
+
+                <form id="videoForm" action="/upload_video" method="POST" enctype="multipart/form-data"
+                    target="videoFrame" class="w-full flex flex-col sm:flex-row gap-4 mb-6">
+                    <input type="file" name="video" id="videoInput" accept=".mp4" required
+                        class="block w-full text-sm text-gray-400 file:mr-4 file:py-3 file:px-6 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-gray-700 file:text-white hover:file:bg-gray-600 transition cursor-pointer bg-gray-900 rounded-xl border border-gray-700 p-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <button type="submit" id="processVideoBtn"
+                        class="w-full sm:w-auto px-10 py-4 bg-purple-600 hover:bg-purple-500 text-white font-bold text-lg rounded-xl transition-colors shadow-lg shadow-purple-500/30 whitespace-nowrap active:scale-95">
+                        Process Video
+                    </button>
+                </form>
+
+                <div id="videoOutputContainer"
+                    class="w-full min-h-[500px] h-auto bg-gray-900 rounded-xl border border-gray-700 flex items-center justify-center overflow-hidden relative shadow-inner p-2">
+                    <span id="videoPlaceholder" class="text-gray-500 font-medium text-lg">Video output stream will
+                        appear here</span>
+                    <iframe name="videoFrame" id="videoFrame"
+                        class="hidden w-full min-h-[500px] h-auto border-none rounded-lg"
+                        onload="hideVideoPlaceholder()"></iframe>
+                </div>
+            </section>
+
+            <section
+                class="bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-8 flex flex-col items-center w-full shadow-black/50">
+                <header class="w-full mb-6">
+                    <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+                        <svg class="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z">
+                            </path>
+                        </svg>
+                        Live Camera
+                    </h2>
+                    <p class="text-gray-400 mt-2">Use your device webcam for real-time inference mapping.</p>
+                </header>
+
+                <div class="w-full flex flex-col sm:flex-row gap-4 mb-6">
+                    <button id="startWebcamBtn"
+                        class="flex-1 px-10 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-lg rounded-xl transition-colors shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-3 active:scale-95">
+                        <span
+                            class="w-2.5 h-2.5 bg-white rounded-full animate-pulse shadow-[0_0_8px_rgba(255,255,255,0.8)]"></span>
+                        Start Live Camera
+                    </button>
+                    <button id="stopWebcamBtn"
+                        class="flex-1 px-10 py-4 bg-gray-900 border border-red-500/30 hover:border-red-500 hover:bg-red-500/10 text-red-500 font-bold text-lg rounded-xl transition-colors active:scale-95">
+                        Stop Camera
+                    </button>
+                </div>
+
+                <div id="webcamOutputContainer"
+                    class="w-full min-h-[500px] h-auto bg-gray-900 rounded-xl border border-gray-700 flex items-center justify-center overflow-hidden relative shadow-inner p-2">
+                    <span id="webcamPlaceholder" class="text-gray-500 font-medium text-lg flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21">
+                            </path>
+                        </svg>
+                        Webcam feed inactive
+                    </span>
+                    <img id="webcamImg" class="hidden w-full h-auto max-h-[700px] object-contain rounded-lg"
+                        alt="Live Stream" />
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+</body>
+
+</html>
