@@ -2,7 +2,6 @@ import os
 import random
 import shutil
 
-# Paths
 image_dir = "images"
 label_dir = "labels"
 
